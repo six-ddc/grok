@@ -412,3 +412,51 @@ func (g *Grok) ParseStream(reader *bufio.Reader, pattern string, process func(ma
 		}
 	}
 }
+
+type PatternElement struct {
+	Syntax   string
+	Semantic string
+	Type     string
+}
+
+func (g *Grok) ParsePattern(pattern string) (map[string]PatternElement, error) {
+	eles := map[string]PatternElement{}
+
+	var eachPattern func(string) error
+	eachPattern = func(p string) error {
+		for _, values := range normal.FindAllStringSubmatch(p, -1) {
+			names := strings.Split(values[1], ":")
+
+			var syntax, semantic, tp string
+			syntax = names[0]
+			if len(names) > 1 {
+				semantic = names[1]
+			}
+			if len(names) > 2 {
+				tp = names[2]
+			}
+
+			if semantic != "" {
+				eles[semantic] = PatternElement{
+					Syntax:   syntax,
+					Semantic: semantic,
+					Type:     tp,
+				}
+			}
+
+			storedPattern, ok := g.rawPattern[syntax]
+			if !ok {
+				return fmt.Errorf("no pattern found for %%{%s}", syntax)
+			}
+
+			eachPattern(storedPattern)
+		}
+		return nil
+	}
+
+	err := eachPattern(pattern)
+	if err != nil {
+		return nil, err
+	}
+	return eles, nil
+}
