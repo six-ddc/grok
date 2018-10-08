@@ -31,7 +31,7 @@ type Config struct {
 // Grok object us used to load patterns and deconstruct strings using those
 // patterns.
 type Grok struct {
-	rawPattern       map[string]string
+	RawPattern       map[string]string
 	config           *Config
 	aliases          map[string]string
 	compiledPatterns map[string]*gRegexp
@@ -65,7 +65,7 @@ func NewWithConfig(config *Config) (*Grok, error) {
 		aliases:          map[string]string{},
 		compiledPatterns: map[string]*gRegexp{},
 		patterns:         map[string]*gPattern{},
-		rawPattern:       map[string]string{},
+		RawPattern:       map[string]string{},
 		patternsGuard:    new(sync.RWMutex),
 		compiledGuard:    new(sync.RWMutex),
 	}
@@ -107,7 +107,7 @@ func (g *Grok) AddPattern(name, pattern string) error {
 	g.patternsGuard.Lock()
 	defer g.patternsGuard.Unlock()
 
-	g.rawPattern[name] = pattern
+	g.RawPattern[name] = pattern
 	g.buildPatterns()
 	return nil
 }
@@ -118,7 +118,7 @@ func (g *Grok) AddPatternsFromMap(m map[string]string) error {
 	defer g.patternsGuard.Unlock()
 
 	for name, pattern := range m {
-		g.rawPattern[name] = pattern
+		g.RawPattern[name] = pattern
 	}
 	return g.buildPatterns()
 }
@@ -291,7 +291,7 @@ func (g *Grok) ParseToMultiMap(pattern, text string) (map[string][]string, error
 
 func (g *Grok) buildPatterns() error {
 	g.patterns = map[string]*gPattern{}
-	return g.addPatternsFromMap(g.rawPattern)
+	return g.addPatternsFromMap(g.RawPattern)
 }
 
 func (g *Grok) compile(pattern string) (*gRegexp, error) {
@@ -444,7 +444,7 @@ func (g *Grok) ParsePattern(pattern string) (map[string]PatternElement, error) {
 				}
 			}
 
-			storedPattern, ok := g.rawPattern[syntax]
+			storedPattern, ok := g.RawPattern[syntax]
 			if !ok {
 				return fmt.Errorf("no pattern found for %%{%s}", syntax)
 			}
