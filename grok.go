@@ -419,8 +419,9 @@ type PatternElement struct {
 	Type     string
 }
 
-func (g *Grok) ParsePattern(pattern string) (map[string]PatternElement, error) {
-	eles := map[string]PatternElement{}
+// ParsePattern parse all sub pattern with syntax, semantic and type
+func (g *Grok) ParsePattern(pattern string) ([]PatternElement, error) {
+	var eles []PatternElement
 
 	var eachPattern func(string) error
 	eachPattern = func(p string) error {
@@ -436,13 +437,11 @@ func (g *Grok) ParsePattern(pattern string) (map[string]PatternElement, error) {
 				tp = names[2]
 			}
 
-			if semantic != "" {
-				eles[semantic] = PatternElement{
-					Syntax:   syntax,
-					Semantic: semantic,
-					Type:     tp,
-				}
-			}
+			eles = append(eles, PatternElement{
+				Syntax:   syntax,
+				Semantic: semantic,
+				Type:     tp,
+			})
 
 			storedPattern, ok := g.RawPattern[syntax]
 			if !ok {
